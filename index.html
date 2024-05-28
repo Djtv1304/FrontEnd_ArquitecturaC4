@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campo y Botón</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input, button {
+            margin: 5px 0;
+            padding: 10px;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <input type="text" id="inputField" placeholder="Escribe tu cédula...">
+        <button onclick="sendCedula()">Enviar</button>
+    </div>
+    <script>
+        function sendCedula() {
+            const inputField = document.getElementById('inputField');
+            const cedula = inputField.value.trim();
+            
+            if (cedula) {
+                // Primera petición al endpoint /verificar-cedula/{cedula}
+                fetch(`http://localhost:8080/verificar-cedula/${cedula}001`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.isCedulaExistente) {
+                            // Segunda petición al endpoint /obtener-puntos/{cedula}
+                            const shortCedula = cedula.substring(0, 10);
+                            fetch(`http://localhost:8081/obtener-puntos/${cedula}`)
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.puntos) {
+                                        alert(`La cédula existe. Puntos: ${data.puntos}`);
+                                    } else if (data.error) {
+                                        alert(`Error al obtener puntos: ${data.error}`);
+                                    }
+                                })
+                                .catch(error => {
+                                    alert(`Error en la petición de puntos: ${error}`);
+                                });
+                        } else {
+                            alert('La cédula no existe.');
+                        }
+                    })
+                    .catch(error => {
+                        alert(`Error en la verificación de la cédula: ${error}`);
+                    });
+            } else {
+                alert('Por favor, introduce una cédula.');
+            }
+        }
+    </script>
+</body>
+</html>
